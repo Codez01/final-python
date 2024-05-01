@@ -1,0 +1,32 @@
+name: Build and Push Docker Image To DockerHub Repository
+
+on:
+  push:
+    branches:
+      - main  # trigger the workflow on push to main branch
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        ref: main # checkout the main branch
+
+
+    - name: Login to DockerHub
+      run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+      env:
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+    - name: Build Docker image
+      run: docker build -t flask-app .
+
+    - name: Tag Docker image
+      run: docker tag flask-app ${{ secrets.DOCKERHUB_USERNAME }}/flask-app
+
+    - name: Push Docker image to DockerHub
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/flask-app
